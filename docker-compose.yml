@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 services:
     nginx:
         image: "${DOCKER_USER}/lnmp-nginx:v1.2"
@@ -20,22 +20,44 @@ services:
             - frontend
             - backend
         environment:
-            MYSQL_PASSWORD: Passw0rd
+            - MYSQL_PASSWORD=root
         depends_on:
             - mysql
+
+
+    phpmyadmin:
+          container_name: phpmyadmin
+          image: daocloud.io/daocloud/phpmyadmin
+          expose:
+              - '80'
+          ports:
+              - "8080:80"
+          environment:
+              - PMA_ARBITRARY=0
+              - PMA_HOST=mysql
+              - PMA_MYSQL_ROOT_PASSWORD=root  
+            #  - PMA_USER=root
+            # - PMA_PASSWORD= Passw0rd
+          depends_on:
+              - mysql
+          networks:
+              - backend
+
+
+
     mysql:
         image: mysql:5.7
         volumes:
-            - mysql-data:/var/lib/mysql
+            - sql:/var/lib/mysql
         environment:
-            TZ: 'Asia/Shanghai'
-            MYSQL_ROOT_PASSWORD: Passw0rd
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=root
+            - MYSQL_ROOT_PASSWORD=root
         command: ['mysqld', '--character-set-server=utf8']
         networks:
             - backend
 volumes:
-    mysql-data:
-
+    sql:
 networks:
     frontend:
     backend:
