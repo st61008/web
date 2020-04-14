@@ -62,7 +62,7 @@ services:
         environment:
             TZ: 'Asia/Taipei'
             MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: AirAlliance
+            MYSQL_DATABASE: airalliance
         command: ['mysqld', '--character-set-server=utf8']
         networks:
             - backend

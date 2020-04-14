@@ -34,38 +34,42 @@ function initDB(){
        $_SESSION['databasePWord']=$databasePWord; 
        $_SESSION['databaseName']=$databaseName;        
         
-       $connection = mysql_connect($databaseURL,$databaseUName,$databasePWord)
+       $connection = mysqli_connect($databaseURL,$databaseUName,$databasePWord,$databaseName)
                      or die ("錯誤: 連接伺服器錯誤!");
-       $db = mysql_select_db($databaseName,$connection)
+       $db = mysqli_select_db($connection,$databaseName)
              or die ("錯誤: 連接資料庫錯誤!"); 
        // 送出utf8編碼與校對      
-       mysql_query('SET CHARACTER SET utf8');
-       mysql_query("SET collation_connection = 'utf8_general_ci'");
+       mysqli_query($connection,'SET CHARACTER SET utf8');
+       mysqli_query($connection,"SET collation_connection = 'utf8_general_ci'");
        
        $rowArray;
        $rowID = 1;
-       $query = "SELECT * FROM Sectors";
-       $result = mysql_query($query);
-       while($row = mysql_fetch_array($result)){    
+       $query = "SELECT * FROM sectors";
+       $result = mysqli_query($connection,$query);
+	   if (!$result) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }
+       while($row = mysqli_fetch_array($result)){    
           $rowArray[$rowID] = $row['Sector'];   
           $rowID = $rowID + 1;
        }  
        // 更新航點資訊的Session變數
        $_SESSION['sectors'] = $rowArray;    
-       mysql_close($connection);
+       mysqli_close($connection);
     }
     $databaseURL = $_SESSION['databaseURL'];
     $databaseUName = $_SESSION['databaseUName'];
     $databasePWord = $_SESSION['databasePWord'];
     $databaseName = $_SESSION['databaseName']; 
 
-    $connection = mysql_connect($databaseURL,$databaseUName,$databasePWord)
+    $connection = mysqli_connect($databaseURL,$databaseUName,$databasePWord,$databaseName)
                   or die ("錯誤: 連接伺服器錯誤!");
-    $db = mysql_select_db($databaseName,$connection)
+    $db = mysqli_select_db($connection,$databaseName)
           or die ("錯誤: 連接資料庫錯誤!"); 
     // 送出utf8編碼與校對      
-    mysql_query('SET CHARACTER SET utf8');
-    mysql_query("SET collation_connection = 'utf8_general_ci'");
+    mysqli_query($connection,'SET CHARACTER SET utf8');
+    mysqli_query($connection,"SET collation_connection = 'utf8_general_ci'");
     
     return $connection;
 }
@@ -74,35 +78,35 @@ function initDB(){
 關閉資料庫連接
 */
 function closeDB($connection){
-    mysql_close($connection);
+    mysqli_close($connection);
 }
 
 /*
 函數可以取消訂票
-使用訂票編號刪除Itinerary和Schedule資料表的訂票資料,
-但是保留客戶資料, 行程編號是從Itinerary資料表取得.
+使用訂票編號刪除itinerary和schedule資料表的訂票資料,
+但是保留客戶資料, 行程編號是從itinerary資料表取得.
 函數傳入訂票編號, 成功傳回 0
 */
 function cancelReservation($IID){
     $connection = initDB();
     
     // 查詢訂票編號的行程編號
-    $query2 = "SELECT * FROM Itinerary WHERE IID='".$IID."'";
-    $result2 = mysql_query($query2);
+    $query2 = "SELECT * FROM itinerary WHERE IID='".$IID."'";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
     $SID;
     // 取得行程編號
-    while($row2 = mysql_fetch_array($result2)){        
+    while($row2 = mysqli_fetch_array($result2)){        
             $SID = $row2['SID'];                         
         }
-    // 刪除Schedule資料表的記錄資料
-    $query2 = "DELETE FROM Schedule WHERE SID='".$SID."'";
-    $result2 = mysql_query($query2);
+    // 刪除schedule資料表的記錄資料
+    $query2 = "DELETE FROM schedule WHERE SID='".$SID."'";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error()); 
         
-    // 刪除Itinerary資料表的記錄資料
-    $query2 = "DELETE FROM Itinerary WHERE IID='".$IID."'";
-    $result2 = mysql_query($query2);
+    // 刪除itinerary資料表的記錄資料
+    $query2 = "DELETE FROM itinerary WHERE IID='".$IID."'";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
 
     closeDB($connection);
@@ -121,83 +125,83 @@ function processReservation($fname,$lname,$sourcelist,$destlist,$flight,$sdate){
     $connection = initDB();
     $query2;
         
-    // 更新Guest資料表
-    $query2 = "SELECT * FROM Guest WHERE FirstName='".$fname."' AND LastName='".$lname."'";
-    $result2 = mysql_query($query2);
+    // 更新guest資料表
+    $query2 = "SELECT * FROM guest WHERE FirstName='".$fname."' AND LastName='".$lname."'";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
 
-    $registeredGuest = false;
+    $registeredguest = false;
     $guestID;
 
-    while($row2 = mysql_fetch_array($result2)){        
+    while($row2 = mysqli_fetch_array($result2)){        
        $guestID = $row2['GID'];
-       $registeredGuest = true;               
+       $registeredguest = true;               
     }
     // 客戶編號錯誤, 表示是第一次搭飛機.
-    if(! $registeredGuest){        
-        // 更新Guest資料表, 取得最後一個客戶編號
-        $query2 = "SELECT MAX(GID) FROM Guest";
-        $result2 = mysql_query($query2);
+    if(! $registeredguest){        
+        // 更新guest資料表, 取得最後一個客戶編號
+        $query2 = "SELECT MAX(GID) FROM guest";
+        $result2 = mysqli_query($connection,$query2);
                 //or die ("查詢失敗: ".mysql_error());
-        $row2 = mysql_fetch_array($result2);
+        $row2 = mysqli_fetch_array($result2);
         $MGID = $row2[0];  // 取得最後一個客戶編號
         
         $guestID = $MGID + 1;  // 取得新的客戶編號
         
         // 新增客戶資料
-        $query2 = "INSERT INTO Guest Values('".$guestID."','".$fname."','".$lname."')";
-        $result2 = mysql_query($query2);
+        $query2 = "INSERT INTO guest Values('".$guestID."','".$fname."','".$lname."')";
+        $result2 = mysqli_query($connection,$query2);
                 //or die ("查詢失敗: ".mysql_error()); 
     }        
         
     // 取得航班編號
-    $query = "SELECT * FROM Flights WHERE FName='".$flight."'";
-    $result = mysql_query($query);
+    $query = "SELECT * FROM flights WHERE FName='".$flight."'";
+    $result = mysqli_query($connection,$query);
         //or die ("查詢失敗: ".mysql_error());
-    $row2 = mysql_fetch_array($result);  
+    $row2 = mysqli_fetch_array($result);  
     $FID = $row2['FID'];         
         
-    // 取得Schedule資料表最後一個行程編號 
-    $query2 = "SELECT MAX(SID) FROM Schedule";
-    $result2 = mysql_query($query2);
+    // 取得schedule資料表最後一個行程編號 
+    $query2 = "SELECT MAX(SID) FROM schedule";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
-    $row2 = mysql_fetch_array($result2);
+    $row2 = mysqli_fetch_array($result2);
     $MSID = $row2[0];     // 取得最大的行程編號
 
     $SID = $MSID + 1;     // 取得新的行程編號     
-    // 在新增Schedule和Itinerary資料表前, 檢查是否有重複記錄
-    $query2 = "SELECT * FROM Schedule WHERE GID='".$guestID."' AND FID='".$FID."' AND Date='".$sdate."'";
-    $result2 = mysql_query($query2);
+    // 在新增schedule和itinerary資料表前, 檢查是否有重複記錄
+    $query2 = "SELECT * FROM schedule WHERE GID='".$guestID."' AND FID='".$FID."' AND Date='".$sdate."'";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
 
-    $duplicateItinerary = false;
+    $duplicateitinerary = false;
     $guestID;
     // 如果有查詢到記錄, 就表示重複訂票
-    while($row2 = mysql_fetch_array($result2)){  
-       $duplicateItinerary = true;               
+    while($row2 = mysqli_fetch_array($result2)){  
+       $duplicateitinerary = true;               
     }
 
-    if($duplicateItinerary){
+    if($duplicateitinerary){
         // 訂票資料重複, 傳回 -1.
         return -1;
     }   
 
     // 新增行程資料
-    $query2 = "INSERT INTO Schedule Values('".$SID."','".$guestID."','".$FID."','".$sdate."')";
-    $result2 = mysql_query($query2);
+    $query2 = "INSERT INTO schedule Values('".$SID."','".$guestID."','".$FID."','".$sdate."')";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
         
-    // 取得Itinerary資料表的最後一個訂票編號       
-    $query2 = "SELECT MAX(IID) FROM Itinerary";
-    $result2 = mysql_query($query2);
+    // 取得itinerary資料表的最後一個訂票編號       
+    $query2 = "SELECT MAX(IID) FROM itinerary";
+    $result2 = mysqli_query($connection,$query2);
         // or die ("查詢失敗: ".mysql_error());
-    $row2 = mysql_fetch_array($result2);
+    $row2 = mysqli_fetch_array($result2);
     $MIID = $row2[0];     // 取得最大的訂票編號 
     
     $IID = $MIID + 1;     // 取得新的訂票編號 
     // 最後新增訂票資料 
-    $query2 = "INSERT INTO Itinerary Values('".$IID."','".$guestID."','".$FID."','".$SID."')";
-    $result2 = mysql_query($query2);
+    $query2 = "INSERT INTO itinerary Values('".$IID."','".$guestID."','".$FID."','".$SID."')";
+    $result2 = mysqli_query($connection,$query2);
         //or die ("查詢失敗: ".mysql_error());
 
     closeDB($connection);
@@ -206,36 +210,47 @@ function processReservation($fname,$lname,$sourcelist,$destlist,$flight,$sdate){
 
 /*
 函數可以取得可用的航班資訊
-在傳入兩個航點後, 傳回查詢Flights資料表的可用航班
+在傳入兩個航點後, 傳回查詢flights資料表的可用航班
 函數傳入出發地點(例如: SFO) 和目的地點
 傳回值是可用的航班陣列
 */
-function getAvailableFlights($source,$dest){
+function getAvailableflights($source,$dest){
 
     $connection = initDB();
     $query2;       
     // 取得出發地點的航點編號SID (請注意! 它和行程編號的欄位名稱相同)
-    $query2 = "SELECT * FROM Sectors WHERE Sector='".$source."'";
-    $result2 = mysql_query($query2);
-        //or die ("查詢失敗: ".mysql_error());                
-    $row2 = mysql_fetch_array($result2);
+    $query2 = "SELECT * FROM sectors WHERE Sector='".$source."'";
+    $result2 = mysqli_query($connection,$query2);
+        //or die ("查詢失敗: ".mysql_error());  
+	   if (!$result2) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }		
+    $row2 = mysqli_fetch_array($result2);
     $SourceSID = $row2['SID'];
     // 取得目的地點的航點編號SID
-    $query3 = "SELECT * FROM Sectors WHERE Sector='".$dest."'";
-    $result3 = mysql_query($query3);
-        // or die ("查詢失敗: ".mysql_error());                
-    $row3 = mysql_fetch_array($result3);
+    $query3 = "SELECT * FROM sectors WHERE Sector='".$dest."'";
+    $result3 = mysqli_query($connection,$query3);
+        // or die ("查詢失敗: ".mysql_error()); 
+	   if (!$result3) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }		
+    $row3 = mysqli_fetch_array($result3);
     $destSID= $row3['SID'];
         
-    // 取得Flights資料表的可用航班
-    $query3 = "SELECT * FROM Flights WHERE SourceSID='".$SourceSID."' AND DestSID='".$destSID."'";
-    $result3 = mysql_query($query3);
+    // 取得flights資料表的可用航班
+    $query3 = "SELECT * FROM flights WHERE SourceSID='".$SourceSID."' AND DestSID='".$destSID."'";
+    $result3 = mysqli_query($connection,$query3);
         //  or die ("查詢失敗: ".mysql_error()); 
-
+	   if (!$result3) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }
     $flightsArray;
     $flightsID = 1;
     // 建立可用航班陣列
-    while($row = mysql_fetch_array($result3)){        
+    while($row = mysqli_fetch_array($result3)){        
        $fName= $row['FName'];
        $flightsArray[$flightsID] = $fName;
        $flightsID = $flightsID + 1;
@@ -247,7 +262,7 @@ function getAvailableFlights($source,$dest){
 /*
 函數傳回航班資訊
 使用航班編號查詢Flight資料表的航班資訊
-並且查詢Sectors資料表的航點資訊.
+並且查詢sectors資料表的航點資訊.
 函數傳入航班編號. 如果為0就是取得所有航班資訊
 傳回Flight物件陣列的航班資訊,
 類別宣告是在classes/子資料夾的flight.php.
@@ -257,34 +272,45 @@ function getFlightInfo($FID){
     $query;
     // 以參數建立SQL指令查詢所有航班或只有指定航班資料
     if( $FID == 0 ){
-       $query = "SELECT * FROM Flights";   // 全部             
+       $query = "SELECT * FROM flights";   // 全部             
     }
     else{
-       $query = "SELECT * FROM Flights WHERE FID='".$FID."'";               
+       $query = "SELECT * FROM flights WHERE FID='".$FID."'";               
     }
 
-    $result = mysql_query($query);
+    $result = mysqli_query($connection,$query);
         // or die ("查詢失敗: ".mysql_error());
-
+	   if (!$result) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }
     $flightData;
     $flightID = 0;
 
-    while($row = mysql_fetch_array($result)){   
+    while($row = mysqli_fetch_array($result)){   
        $FID = $row['FID'];
        $FName = $row['FName'];
        $SourceSID = $row['SourceSID'];
        $DestSID = $row['DestSID'];
        // 取得出發地點的航點資訊
-       $query2 = "SELECT * FROM Sectors WHERE SID='".$SourceSID."'";
-       $result2 = mysql_query($query2);
-              //or die ("Query Failed ".mysql_error());                
-       $row2 = mysql_fetch_array($result2);
+       $query2 = "SELECT * FROM sectors WHERE SID='".$SourceSID."'";
+       $result2 = mysqli_query($connection,$query2);
+              //or die ("Query Failed ".mysql_error()); 
+	   if (!$result2) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }			  
+       $row2 = mysqli_fetch_array($result2);
        $source = $row2['Sector'];
        // 取得目的地點的航點資訊 
-       $query3 = "SELECT * FROM Sectors WHERE SID='".$DestSID."'";
-       $result3 = mysql_query($query3);
-                //or die ("查詢失敗: ".mysql_error());                
-       $row3 = mysql_fetch_array($result3);
+       $query3 = "SELECT * FROM sectors WHERE SID='".$DestSID."'";
+       $result3 = mysqli_query($connection,$query3);
+                //or die ("查詢失敗: ".mysql_error()); 
+	   if (!$result3) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+        }				
+       $row3 = mysqli_fetch_array($result3);
        $dest= $row3['Sector'];
                 
        // 建立Flight物件
@@ -304,82 +330,91 @@ function getFlightInfo($FID){
 
 /*
 函數傳回訂票資料
-使用訂票編號查詢Itinerary資料表的訂票資訊
-並且查詢Guest資料表的客戶姓名, Schedule行程資料表的日期, 
-Flights資料表的名稱, 出發地點和目的地點, 然後就可以
-查詢Sectors資料表的航點資訊.
+使用訂票編號查詢itinerary資料表的訂票資訊
+並且查詢guest資料表的客戶姓名, schedule行程資料表的日期, 
+flights資料表的名稱, 出發地點和目的地點, 然後就可以
+查詢sectors資料表的航點資訊.
 函數傳入訂票編號. 如果為0就是取得所有訂票資訊
-傳回GuestItinerary物件陣列的客戶訂票資訊,
+傳回guestitinerary物件陣列的客戶訂票資訊,
 類別宣告是在classes/子資料夾的guestitinerary.php.
 */
-function getItinerary($IID){
+function getitinerary($IID){
     $connection = initDB();
     $query;
     // 以參數建立SQL指令查詢所有訂票或只有指定訂票資料
     if($IID == 0){
-        $query = "SELECT * FROM Itinerary";   // 全部             
+        $query = "SELECT * FROM itinerary";   // 全部             
     }
     else{
-        $query = "SELECT * FROM Itinerary WHERE IID='".$IID."'";               
+        $query = "SELECT * FROM itinerary WHERE IID='".$IID."'";               
     }
 
-    $result = mysql_query($query);
+    $result = mysqli_query($connection,$query);
         //or die ("查詢失敗: ".mysql_error());
+		
+	if (!$result) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+    }	
         
     $itineraryID = 0;
     $itineraryData;
 
-    while($row = mysql_fetch_array($result)){   
+    while($row = mysqli_fetch_array($result)){   
         $GID = $row['GID'];
         $FID = $row['FID'];
         $SID = $row['SID'];
                
         // 取得客戶姓名
-        $query2 = "SELECT * FROM Guest WHERE GID='".$GID."'";
-        $result2 = mysql_query($query2);
-        $row2 = mysql_fetch_array($result2);
+        $query2 = "SELECT * FROM guest WHERE GID='".$GID."'";
+        $result2 = mysqli_query($connection,$query2);
+        $row2 = mysqli_fetch_array($result2);
         $firstName = $row2['FirstName'];
         $lastName = $row2['LastName'];
                 
         // 取得行程的日期
-        $query3 = "SELECT * FROM Schedule WHERE SID='".$SID."'";
-        $result3 = mysql_query($query3);
-        $row3 = mysql_fetch_array($result3);
+        $query3 = "SELECT * FROM schedule WHERE SID='".$SID."'";
+        $result3 = mysqli_query($connection,$query3);
+	if (!$result3) {
+              printf("Error: %s\n", mysqli_error($connection));
+              exit();
+    }		
+        $row3 = mysqli_fetch_array($result3);
         $travelDate = $row3['Date'];
                 
         // 取得航班資料的名稱, 出發地點和目的地點
-        $query3 = "SELECT * FROM Flights WHERE FID='".$FID."'";
-        $result3 = mysql_query($query3);
-        $row3 = mysql_fetch_array($result3);
+        $query3 = "SELECT * FROM flights WHERE FID='".$FID."'";
+        $result3 = mysqli_query($connection,$query3);
+        $row3 = mysqli_fetch_array($result3);
         $sourceSID = $row3['SourceSID'];
         $destSID = $row3['DestSID'];
         $fName = $row3['FName'];
         // 取得出發地點的航點資訊
-        $query4 = "SELECT Sector FROM Sectors WHERE SID='".$sourceSID."'";
-        $result4 = mysql_query($query4);
-        $row4 = mysql_fetch_array($result4);
+        $query4 = "SELECT Sector FROM sectors WHERE SID='".$sourceSID."'";
+        $result4 = mysqli_query($connection,$query4);
+        $row4 = mysqli_fetch_array($result4);
         $source = $row4['Sector'];
         // 取得目的地點的航點資訊 
-        $query4 = "SELECT Sector FROM Sectors WHERE SID='".$destSID."'";
-        $result4 = mysql_query($query4);
-        $row4 = mysql_fetch_array($result4);
+        $query4 = "SELECT Sector FROM sectors WHERE SID='".$destSID."'";
+        $result4 = mysqli_query($connection,$query4);
+        $row4 = mysqli_fetch_array($result4);
         $dest = $row4['Sector'];
                 
-        // 建立GuestItinerary物件  
-        $guestItinerary = new GuestItinerary();
+        // 建立guestitinerary物件  
+        $guestitinerary = new guestitinerary();
      
-        $guestItinerary->set_FID($FID);
-        $guestItinerary->set_FName($fName);
-        $guestItinerary->set_SID($SID);
-        $guestItinerary->set_source($source);
-        $guestItinerary->set_dest($dest);
-        $guestItinerary->set_travelDate($travelDate);
+        $guestitinerary->set_FID($FID);
+        $guestitinerary->set_FName($fName);
+        $guestitinerary->set_SID($SID);
+        $guestitinerary->set_source($source);
+        $guestitinerary->set_dest($dest);
+        $guestitinerary->set_travelDate($travelDate);
       
-        $guestItinerary->set_GID($GID);
-        $guestItinerary->set_firstName($firstName);
-        $guestItinerary->set_lastName($lastName);    
-        // 建立GuestItinerary物件陣列
-        $itineraryData[$itineraryID]=$guestItinerary;
+        $guestitinerary->set_GID($GID);
+        $guestitinerary->set_firstName($firstName);
+        $guestitinerary->set_lastName($lastName);    
+        // 建立guestitinerary物件陣列
+        $itineraryData[$itineraryID]=$guestitinerary;
         $itineraryID = $itineraryID + 1;        
     }
 

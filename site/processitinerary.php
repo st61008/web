@@ -14,19 +14,19 @@ if(! isset($_SESSION['sectors'])){
     $_SESSION['databaseUName']=$databaseUName; 
     $_SESSION['databasePWord']=$databasePWord; 
     $_SESSION['databaseName']=$databaseName;
-#$con = mysqli_connect("localhost","my_user","my_password","my_db");
-    $connection = mysqli_connect($databaseURL,$databaseUName,$databasePWord)
+
+    $connection = mysqli_connect($databaseURL,$databaseUName,$databasePWord,$databaseName)
                   or die ("錯誤: 連接伺服器錯誤!");
-    $db = mysqli_select_db($databaseName,$connection)
+    $db = mysqli_select_db($connection,$databaseName)
           or die ("錯誤: 連接資料庫錯誤!"); 
     // 送出utf8編碼與校對     
-    mysqli_query('SET CHARACTER SET utf8');
-    mysqli_query("SET collation_connection = 'utf8_general_ci'");
+    mysqli_query($connection,'SET CHARACTER SET utf8');
+    mysqli_query($connection,"SET collation_connection = 'utf8_general_ci'");
     
     $rowArray;
     $rowID = 1;
-    $query = "SELECT * FROM Sectors";
-    $result = mysqli_query($query);
+    $query = "SELECT * FROM sectors";
+    $result = mysqli_query($connection,$query);
     while($row = mysqli_fetch_array($result)){    
             $rowArray[$rowID] = $row['Sector'];   
             $rowID = $rowID + 1;
@@ -95,7 +95,7 @@ $rowArray2 = $_SESSION['sectors'];
                     <form action="processitinerary.php" method="POST">                        
                         <?php
                             // 找出可用的航班
-                            $flightsArray = getAvailableFlights($sourcelist,$destlist);
+                            $flightsArray = getAvailableflights($sourcelist,$destlist);
                             if( count($flightsArray) < 1 ){  // 沒有可用的航班
                                 echo "<h3>沒有可用的航班</h3>";
                                 echo "<h4>在選擇的地點之間沒有可用的航班, 請重新選擇</h4><br><br>";

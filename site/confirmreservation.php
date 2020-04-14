@@ -39,7 +39,7 @@
                                 }
                                 if(!$isCancelAction){                                    
                                     // 取得指定編號的訂票資料
-                                    $itineraryData = getItinerary($IID);
+                                    $itineraryData = getitinerary($IID);
                                     if(count($itineraryData) > 0){   
                                         echo "<h3>訂票資料</h3>";
                                         echo "<table class='aatable'>";
@@ -52,14 +52,14 @@
                                         echo "</tr>";
                                         
                                         for($index=0;$index < count($itineraryData);$index++){
-                                            $guestItinerary = $itineraryData[$index];
+                                            $guestitinerary = $itineraryData[$index];
                                             echo "<tr>";
-                                            echo "<td>".$guestItinerary->get_lastName().$guestItinerary->get_firstName()."</td>";
-                                            echo "<td><a class='data' href='flightinfo.php?FID=".$guestItinerary->get_FID()."'>".$guestItinerary->get_FName()."</a></td>";
+                                            echo "<td>".$guestitinerary->get_lastName().$guestitinerary->get_firstName()."</td>";
+                                            echo "<td><a class='data' href='flightinfo.php?FID=".$guestitinerary->get_FID()."'>".$guestitinerary->get_FName()."</a></td>";
 
-                                            echo "<td>".$guestItinerary->get_source()."</td>";
-                                            echo "<td>".$guestItinerary->get_dest()."</td>";
-                                            echo "<td>".$guestItinerary->get_travelDate()."</td>";
+                                            echo "<td>".$guestitinerary->get_source()."</td>";
+                                            echo "<td>".$guestitinerary->get_dest()."</td>";
+                                            echo "<td>".$guestitinerary->get_travelDate()."</td>";
                                             echo "</tr>";
                                         }
                                         echo "</table>";

@@ -31,17 +31,17 @@
                                     <th>出發日期</th>                                     
                                 </tr>
                                 <?php
-                                    $itineraryData = getItinerary(0);
+                                    $itineraryData = getitinerary(0);
                                     
                                     for($index=0;$index < count($itineraryData);$index++){
-                                        $guestItinerary = $itineraryData[$index];
+                                        $guestitinerary = $itineraryData[$index];
                                         echo "<tr>";
-                                        echo "<td>".$guestItinerary->get_lastName().$guestItinerary->get_firstName()."</td>";
-                                        echo "<td><a class='data' href='flightinfo.php?FID=".$guestItinerary->get_FID()."'>".$guestItinerary->get_FName()."</a></td>";
+                                        echo "<td>".$guestitinerary->get_lastName().$guestitinerary->get_firstName()."</td>";
+                                        echo "<td><a class='data' href='flightinfo.php?FID=".$guestitinerary->get_FID()."'>".$guestitinerary->get_FName()."</a></td>";
                                        
-                                        echo "<td>".$guestItinerary->get_source()."</td>";
-                                        echo "<td>".$guestItinerary->get_dest()."</td>";
-                                        echo "<td>".$guestItinerary->get_travelDate()."</td>";                                        
+                                        echo "<td>".$guestitinerary->get_source()."</td>";
+                                        echo "<td>".$guestitinerary->get_dest()."</td>";
+                                        echo "<td>".$guestitinerary->get_travelDate()."</td>";                                        
                                         echo "</tr>";
                                     }
                                 ?>
