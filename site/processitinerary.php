@@ -14,27 +14,27 @@ if(! isset($_SESSION['sectors'])){
     $_SESSION['databaseUName']=$databaseUName; 
     $_SESSION['databasePWord']=$databasePWord; 
     $_SESSION['databaseName']=$databaseName;
-
-    $connection = mysql_connect($databaseURL,$databaseUName,$databasePWord)
+#$con = mysqli_connect("localhost","my_user","my_password","my_db");
+    $connection = mysqli_connect($databaseURL,$databaseUName,$databasePWord)
                   or die ("錯誤: 連接伺服器錯誤!");
-    $db = mysql_select_db($databaseName,$connection)
+    $db = mysqli_select_db($databaseName,$connection)
           or die ("錯誤: 連接資料庫錯誤!"); 
     // 送出utf8編碼與校對     
-    mysql_query('SET CHARACTER SET utf8');
-    mysql_query("SET collation_connection = 'utf8_general_ci'");
+    mysqli_query('SET CHARACTER SET utf8');
+    mysqli_query("SET collation_connection = 'utf8_general_ci'");
     
     $rowArray;
     $rowID = 1;
     $query = "SELECT * FROM Sectors";
-    $result = mysql_query($query);
-    while($row = mysql_fetch_array($result)){    
+    $result = mysqli_query($query);
+    while($row = mysqli_fetch_array($result)){    
             $rowArray[$rowID] = $row['Sector'];   
             $rowID = $rowID + 1;
         }  
         
     // 更新航點資訊的Session變數
     $_SESSION['sectors'] = $rowArray;  
-    mysql_close($connection);
+    mysqli_close($connection);
 }
 
 $rowArray2 = $_SESSION['sectors']; 

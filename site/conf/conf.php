@@ -5,10 +5,10 @@ AAConf類別 - 資料庫連接設定,
 */
 
 class AAConf{
-    private $databaseURL = "localhost";    // 主機
+    private $databaseURL = "mysql";    // 主機
     private $databaseUName = "root";       // 使用者
-    private $databasePWord = "";           // 密碼
-    private $databaseName = "AirAlliance"; // 資料庫名稱
+    private $databasePWord = "root";           // 密碼
+    private $databaseName = "airalliance"; // 資料庫名稱
 
     function get_databaseURL(){
             return $this->databaseURL;

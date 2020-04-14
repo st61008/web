@@ -14,8 +14,9 @@ services:
     php:
         image: "${DOCKER_USER}/lnmp-php:v1.2"
         build:
-            context: .
-            dockerfile: Dockerfile.php
+          context: .
+          dockerfile: Dockerfile.php
+        restart: always
         networks:
             - frontend
             - backend
@@ -23,6 +24,11 @@ services:
             - MYSQL_PASSWORD=root
         depends_on:
             - mysql
+          
+        networks:
+            - backend
+            - frontend   
+
 
 
     phpmyadmin:
@@ -46,13 +52,17 @@ services:
 
 
     mysql:
-        image: mysql:5.7
+        image: mysql:5.6
         volumes:
-            - sql:/var/lib/mysql
+            - ./sql:/var/lib/mysql
+        expose:
+            - "33060"
+        ports:
+            - "3306:3306"
         environment:
-            - MYSQL_USER=root
-            - MYSQL_PASSWORD=root
-            - MYSQL_ROOT_PASSWORD=root
+            TZ: 'Asia/Taipei'
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: AirAlliance
         command: ['mysqld', '--character-set-server=utf8']
         networks:
             - backend
