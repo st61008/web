@@ -1,5 +1,5 @@
 # web
 docker for LNMP
 
-#H
+#How to use
 docker-compose up -d
